@@ -114,3 +114,4 @@ Low-step diffusion outputs often exhibit subtle textural softness or compressed 
 
 - **Safety & Negative Prompting:** The gateway enforces negative prompt tokens suppressing NSFW, deepfake, or violent generation.
 - **Watermarking & Transparency:** Images carry transparent metadata identifying the generation profile, step count, and post-processing flags to prevent misrepresentation.
+

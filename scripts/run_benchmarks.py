@@ -70,3 +70,4 @@ def run_comparative_benchmark(prompt: str = None):
 if __name__ == "__main__":
     prompt_arg = sys.argv[1] if len(sys.argv) > 1 else None
     run_comparative_benchmark(prompt_arg)
+

@@ -70,3 +70,4 @@ Transparent failure case analysis is a mandatory viva requirement. Below are thr
   - The bilateral filtering unsharp mask assumes high edge contrast is always desirable. In a naturally soft, misty, or blurred scene, enforcing uniform bilateral gain amplifies gradient transitions unnaturally.
 * **Mitigation / Remedy:**
   - Implemented **Adaptive Parameter Selection**: The classical CV pipeline first computes the image's global variance and edge density. If the image has an edge density below threshold $\tau_{\text{soft}}$, the sharpening gain $\beta$ is automatically throttled from $0.6$ down to $0.15$.
+

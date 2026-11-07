@@ -171,3 +171,4 @@ docker run -p 8000:8000 edgediffusion-p3
 
 ## 📜 License
 MIT License. Developed for Problem Statement 3 (P3) Hackathon.
+

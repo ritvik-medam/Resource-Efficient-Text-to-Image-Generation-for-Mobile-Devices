@@ -53,3 +53,4 @@ The **Mobile Ultra-Fast** profile achieves a **34.2× latency reduction** and a 
 | **+ LAB-Space CLAHE Contrast** | 139.1 (+11.9%) | 58.7 (+27.1%) | Enhanced shadow details & vibrant midtones |
 | **+ Bilateral Edge Sharpening** | 184.2 (+48.2%) | 61.4 (+32.9%) | Crisp object boundaries without noise amplification |
 | **+ Lanczos-4 Resampling** | 184.2 | 61.4 | Anti-aliased retina display presentation |
+

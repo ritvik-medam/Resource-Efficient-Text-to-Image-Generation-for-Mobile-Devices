@@ -38,3 +38,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 # Start the application server
 CMD ["uvicorn", "src.api.server:app", "--host", "0.0.0.0", "--port", "8000"]
+

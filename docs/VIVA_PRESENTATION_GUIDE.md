@@ -76,3 +76,4 @@
 
 ### Q5: "How does your solution compare to the baseline?"
 * **Answer:** *"Against the standard 50-step DDIM baseline (28.75s latency, 3.25GB RAM), our 1-step ADD pipeline is **34.2× faster (0.84s)** and uses **56.3% less memory (1.42GB)** while retaining **91.3%** of semantic alignment."*
+
