@@ -28,6 +28,7 @@ def build_hackathon_report():
     print("Encoding images...")
     panda_b64 = get_base64_img("demo_sample_panda.png")
     v0_b64 = get_base64_img("verification_0.png")
+    arch_b64 = get_base64_img("system_architecture.png")
 
     with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
         content = f.read()
@@ -35,6 +36,7 @@ def build_hackathon_report():
     print("Replacing placeholders...")
     content = content.replace("{{PANDA_B64}}", panda_b64)
     content = content.replace("{{V0_B64}}", v0_b64)
+    content = content.replace("{{ARCH_B64}}", arch_b64)
 
     with open(HTML_OUT, "w", encoding="utf-8") as f:
         f.write(content)
