@@ -87,6 +87,12 @@ class DiffusionEngine:
     def _detect_device(self, force_device: Optional[str] = None) -> str:
         if force_device:
             return force_device
+        env_dev = os.environ.get("DEVICE") or os.environ.get("FORCE_DEVICE")
+        if env_dev:
+            return env_dev.lower().strip()
+        if os.environ.get("RENDER"):
+            # Render cloud environment: default to CPU
+            return "cpu"
         if torch.cuda.is_available():
             return "cuda"
         elif hasattr(torch, "mps") and torch.backends.mps.is_available():
@@ -94,7 +100,7 @@ class DiffusionEngine:
         return "cpu"
 
     def _try_load_real_pipeline(self):
-        """Attempts to load distilled pipeline in FP16/Half precision."""
+        """Attempts to load distilled pipeline in FP16/Half precision or CPU Float32."""
         import socket
 
         def is_online():
@@ -105,6 +111,14 @@ class DiffusionEngine:
                 return False
 
         try:
+            # Memory safeguard for ultra-low memory containers (e.g. Render Free Tier with 512MB RAM)
+            total_ram_gb = psutil.virtual_memory().total / (1024 ** 3)
+            if self.device == "cpu" and total_ram_gb < 1.4:
+                print(f"[DiffusionEngine] Detected low-memory host ({total_ram_gb:.1f} GB RAM, e.g. Render Free Tier).")
+                print("[DiffusionEngine] Activating Lightweight Edge Simulation & Full Classical CV Engine to prevent container OOM crash.")
+                self.is_real_model_loaded = False
+                return
+
             from diffusers import AutoPipelineForText2Image
 
             torch_dtype = torch.float16 if self.device in ["cuda", "mps"] else torch.float32
@@ -128,10 +142,10 @@ class DiffusionEngine:
                     local_files_only=False
                 )
 
-            # Move to target accelerator
+            # Move to target accelerator or CPU
             self.pipeline.to(self.device)
 
-            # Mobile optimization: enable attention slicing & memory savings
+            # Mobile/CPU optimization: enable attention slicing & memory savings
             if hasattr(self.pipeline, "enable_attention_slicing"):
                 self.pipeline.enable_attention_slicing()
 

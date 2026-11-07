@@ -29,13 +29,13 @@ COPY eval_P3_T01.md .
 COPY DESIGN.md .
 COPY docs/ ./docs/
 
-# Expose FastAPI port
-EXPOSE 8000
+# Expose ports (FastAPI / Render default)
+EXPOSE 8000 10000 7860
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:8000/api/system-status || exit 1
+  CMD curl -f http://localhost:${PORT:-8000}/api/system-status || exit 1
 
 # Start the application server
-CMD ["uvicorn", "src.api.server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "run.py", "--device", "cpu"]
 
