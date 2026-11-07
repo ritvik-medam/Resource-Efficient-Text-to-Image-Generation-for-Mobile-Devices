@@ -1,9 +1,11 @@
-1MS22CS001, 1MS22CS002, 1MS22CS003, 1MS22CS004
+1RUA24CSE0249, 1RUA24CSE0225, 1RUA24CSE0237, 1RUA24CSE0315
 
 # Comparative Evaluation Results: Problem Statement 3 (P3)
 **Title:** Resource-Efficient Text-to-Image Generation for Mobile Devices  
 **ProbID:** P3  
 **TeamID:** T01  
+**Team Members:** Medam Ritvik (`1RUA24CSE0249`), Lochan M (`1RUA24CSE0225`), Manat M (`1RUA24CSE0237`), Pranav R (`1RUA24CSE0315`)  
+**Institution:** School of Computer Science & Engineering, RV University, Bengaluru  
 
 ---
 
