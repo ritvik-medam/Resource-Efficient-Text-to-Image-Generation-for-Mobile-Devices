@@ -41,8 +41,9 @@ engine = DiffusionEngine()
 
 class GenerationRequest(BaseModel):
     prompt: str = Field(..., example="A cute red panda wearing a tiny astronaut helmet, cinematic lighting, 4k")
-    negative_prompt: str = Field(default="blurry, distorted, low quality, artifacts, watermark")
+    negative_prompt: str = Field(default="")
     mode: str = Field(default="eco", description="eco | balanced | quality | baseline")
+    auto_enhance_prompt: bool = Field(default=True, description="Enrich prompt with photographic quality cues")
     custom_steps: Optional[int] = Field(default=None, ge=1, le=100)
     custom_guidance: Optional[float] = Field(default=None, ge=0.0, le=20.0)
     seed: Optional[int] = Field(default=None)
@@ -50,6 +51,7 @@ class GenerationRequest(BaseModel):
     enable_clahe: bool = Field(default=True)
     enable_vibrance: bool = Field(default=True)
     enable_sharpening: bool = Field(default=True)
+    adaptive_tuning: bool = Field(default=True, description="Auto-adjust CLAHE/sharpening based on image characteristics")
 
 
 def pil_to_base64(img) -> str:
@@ -96,13 +98,15 @@ def generate_image(req: GenerationRequest):
             prompt=req.prompt,
             negative_prompt=req.negative_prompt,
             mode=req.mode,
+            auto_enhance_prompt=req.auto_enhance_prompt,
             custom_steps=req.custom_steps,
             custom_guidance=req.custom_guidance,
             seed=req.seed,
             apply_classical_cv=req.apply_classical_cv,
             enable_clahe=req.enable_clahe,
             enable_vibrance=req.enable_vibrance,
-            enable_sharpening=req.enable_sharpening
+            enable_sharpening=req.enable_sharpening,
+            adaptive_tuning=req.adaptive_tuning
         )
 
         # Convert images to base64
@@ -112,6 +116,9 @@ def generate_image(req: GenerationRequest):
         return {
             "success": True,
             "prompt": result["prompt"],
+            "effective_prompt": result["effective_prompt"],
+            "negative_prompt": result["negative_prompt"],
+            "prompt_enhancement": result["prompt_enhancement"],
             "mode": result["mode"],
             "mode_name": result["mode_name"],
             "steps": result["steps"],
@@ -168,3 +175,4 @@ def run_benchmark(sample_prompt: Optional[str] = None):
 # Ensure static directory exists
 os.makedirs("static", exist_ok=True)
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
+

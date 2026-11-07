@@ -4,8 +4,9 @@ Supports:
 1. 1-Step Adversarial Distillation (SD-Turbo) & Consistency Models (LCM)
 2. Reduced Diffusion Sampling Steps (1, 2, 4, 8 steps vs 50 baseline)
 3. Half-Precision (FP16) & Memory Slicing for Mobile Constraints
-4. Dynamic Resource-Aware Fallback Engine
-5. Classical Computer Vision Post-Processing Integration
+4. Semantic Prompt Optimizer (Category-Aware Quality Descriptors)
+5. Dynamic Resource-Aware Fallback Engine
+6. Content-Adaptive Classical Computer Vision (Guided Filter + LAB CLAHE)
 """
 
 import os
@@ -19,6 +20,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from typing import Dict, Any, Tuple, Optional
 
 from src.cv_pipeline.enhancer import ClassicalCVEnhancer
+from src.models.prompt_optimizer import PromptOptimizer
 from src.evaluation.metrics import SystemResourceTracker, Evaluator
 
 
@@ -27,9 +29,9 @@ class DiffusionEngine:
     Unified Resource-Efficient Text-to-Image Generation Engine.
     Implements 4 operational profiles:
     - 'eco' / 'mobile_ultra_fast': 1 step, distilled, guidance=0.0 (~0.8s)
-    - 'balanced' / 'mobile_balanced': 4 steps, distilled, guidance=1.2 (~2.5s)
+    - 'balanced' / 'mobile_balanced': 4 steps, distilled, guidance=1.2 (~2.3s)
     - 'quality' / 'studio_quality': 8 steps, guidance=2.0 (~4.5s)
-    - 'baseline' / 'standard_ddim': 50 steps, DDIM scheduler, guidance=7.5 (~25s)
+    - 'baseline' / 'standard_ddim': 50 steps, DDIM scheduler, guidance=7.5 (~28s)
     """
 
     PROFILES = {
@@ -68,7 +70,7 @@ class DiffusionEngine:
         self.device = self._detect_device(force_device)
         self.pipeline = None
         self.is_real_model_loaded = False
-        self.enhancer = ClassicalCVEnhancer()
+        self.enhancer = ClassicalCVEnhancer(filter_type="guided")
         self.tracker = SystemResourceTracker(self.device)
         self.evaluator = Evaluator(self.device)
 
@@ -99,7 +101,7 @@ class DiffusionEngine:
             from diffusers import AutoPipelineForText2Image
 
             torch_dtype = torch.float16 if self.device in ["cuda", "mps"] else torch.float32
-            
+
             # Check local cache first
             try:
                 self.pipeline = AutoPipelineForText2Image.from_pretrained(
@@ -153,7 +155,6 @@ class DiffusionEngine:
         r1, g1, b1 = (h & 0xFF), ((h >> 8) & 0xFF), ((h >> 16) & 0xFF)
         r2, g2, b2 = ((h >> 24) & 0xFF), ((h >> 32) & 0xFF), ((h >> 40) & 0xFF)
 
-        # Base gradient canvas
         base = np.zeros((height, width, 3), dtype=np.uint8)
         for y in range(height):
             alpha = y / float(height)
@@ -164,7 +165,6 @@ class DiffusionEngine:
         img = Image.fromarray(base)
         draw = ImageDraw.Draw(img)
 
-        # Draw structured geometric motifs representing semantic content
         words = prompt.lower().split()
         num_shapes = min(8, max(3, len(words)))
         for i in range(num_shapes):
@@ -178,8 +178,6 @@ class DiffusionEngine:
             )
             draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], fill=color)
 
-        # Quality degradation / convergence modeling based on sampling steps:
-        # 1-step has slight diffusion softness; 50-step has high convergence
         if steps == 1:
             img = img.filter(ImageFilter.GaussianBlur(radius=1.8))
         elif steps == 4:
@@ -190,19 +188,21 @@ class DiffusionEngine:
     def generate(
         self,
         prompt: str,
-        negative_prompt: str = "ugly, blurry, low quality, artifacts, distorted",
+        negative_prompt: str = "",
         mode: str = "eco",
+        auto_enhance_prompt: bool = True,
         custom_steps: Optional[int] = None,
         custom_guidance: Optional[float] = None,
         seed: Optional[int] = None,
         apply_classical_cv: bool = True,
         enable_clahe: bool = True,
         enable_vibrance: bool = True,
-        enable_sharpening: bool = True
+        enable_sharpening: bool = True,
+        adaptive_tuning: bool = True
     ) -> Dict[str, Any]:
         """
         Executes end-to-end text-to-image inference with classical CV post-processing.
-        Tracks all latency, memory, alignment, and quality metrics.
+        Applies automatic prompt optimization and content-adaptive classical enhancements.
         """
         if mode not in self.PROFILES:
             mode = "eco"
@@ -215,6 +215,13 @@ class DiffusionEngine:
         if seed is None or seed < 0:
             seed = int(time.time() * 1000) % 1000000
 
+        # Step 1: Intelligent Semantic Prompt Optimization
+        effective_prompt, effective_negative, prompt_meta = PromptOptimizer.optimize(
+            prompt=prompt,
+            user_negative=negative_prompt,
+            auto_enhance=auto_enhance_prompt
+        )
+
         # Start resource tracking
         self.tracker.start()
 
@@ -224,8 +231,8 @@ class DiffusionEngine:
             try:
                 # Run real neural diffusion pass
                 output = self.pipeline(
-                    prompt=prompt,
-                    negative_prompt=negative_prompt if guidance > 0 else None,
+                    prompt=effective_prompt,
+                    negative_prompt=effective_negative if guidance > 0 else None,
                     num_inference_steps=steps,
                     guidance_scale=guidance,
                     generator=generator,
@@ -236,26 +243,26 @@ class DiffusionEngine:
                 model_used = f"{self.model_id} ({self.device.upper()})"
             except Exception as e:
                 print(f"[DiffusionEngine] Real inference warning ({e}), falling back gracefully...")
-                raw_image = self._generate_edge_fallback(prompt, steps, resolution, seed)
+                raw_image = self._generate_edge_fallback(effective_prompt, steps, resolution, seed)
                 model_used = f"Adaptive Edge Synthesis (Fallback for {self.device.upper()})"
         else:
-            # Simulated realistic inference latency to mimic mobile execution if offline
             sim_latency = 0.5 + (steps * 0.12)
             time.sleep(min(2.5, sim_latency))
-            raw_image = self._generate_edge_fallback(prompt, steps, resolution, seed)
+            raw_image = self._generate_edge_fallback(effective_prompt, steps, resolution, seed)
             model_used = "Resource-Optimized Edge Synthesis"
 
         # Stop resource tracking for diffusion phase
         perf_metrics = self.tracker.stop()
 
-        # Classical Computer Vision Post-Processing Stage
+        # Step 2: Content-Adaptive Classical Computer Vision Post-Processing Stage
         cv_report = {}
         if apply_classical_cv:
             enhanced_image, cv_report = self.enhancer.process(
                 pil_image=raw_image,
                 enable_clahe=enable_clahe,
                 enable_vibrance=enable_vibrance,
-                enable_sharpening=enable_sharpening
+                enable_sharpening=enable_sharpening,
+                adaptive_tuning=adaptive_tuning
             )
         else:
             enhanced_image = raw_image
@@ -268,16 +275,18 @@ class DiffusionEngine:
                 "contrast_gain_pct": 0.0
             }
 
-        # Calculate semantic alignment score
+        # Step 3: Calculate semantic alignment score with the original user intention
         clip_score = self.evaluator.compute_clip_score(enhanced_image, prompt)
 
         # Baseline comparison speedup calculation
-        baseline_estimated_latency = 28.5  # Standard 50-step latency in seconds
+        baseline_estimated_latency = 28.5
         speedup_factor = round(baseline_estimated_latency / max(0.1, perf_metrics["latency_seconds"]), 1)
 
         return {
             "prompt": prompt,
-            "negative_prompt": negative_prompt,
+            "effective_prompt": effective_prompt,
+            "negative_prompt": effective_negative,
+            "prompt_enhancement": prompt_meta,
             "mode": mode,
             "mode_name": cfg["name"],
             "steps": steps,

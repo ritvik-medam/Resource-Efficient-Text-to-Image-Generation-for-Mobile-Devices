@@ -13,7 +13,24 @@ from fastapi.testclient import TestClient
 
 from src.cv_pipeline.enhancer import ClassicalCVEnhancer
 from src.models.diffusion_engine import DiffusionEngine
+from src.models.prompt_optimizer import PromptOptimizer
 from src.api.server import app
+
+
+class TestPromptOptimizer(unittest.TestCase):
+    def test_category_detection_and_optimization(self):
+        prompt = "a cute golden retriever puppy in the garden"
+        enhanced, neg, meta = PromptOptimizer.optimize(prompt, auto_enhance=True)
+        self.assertEqual(meta["category"], "animal")
+        self.assertTrue(meta["enhanced"])
+        self.assertIn("fur", enhanced)
+        self.assertIn("deformed", neg)
+
+    def test_portrait_optimization(self):
+        prompt = "portrait of a woman in evening dress"
+        enhanced, neg, meta = PromptOptimizer.optimize(prompt, auto_enhance=True)
+        self.assertEqual(meta["category"], "portrait")
+        self.assertIn("lighting", enhanced)
 
 
 class TestClassicalCVPipeline(unittest.TestCase):
@@ -114,3 +131,4 @@ class TestFastAPIEndpoints(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -103,6 +103,12 @@
                 </div>
               </div>
               <textarea id="promptInput" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" placeholder="Describe the image you want to generate..."></textarea>
+              <div class="flex items-center justify-between mt-2">
+                <label class="flex items-center space-x-2 text-xs text-indigo-300 cursor-pointer">
+                  <input type="checkbox" id="autoEnhancePrompt" checked class="rounded bg-slate-800 border-slate-700 text-indigo-500 focus:ring-0">
+                  <span class="font-medium">✨ Auto-Optimize Prompt (Photographic Quality Cues)</span>
+                </label>
+              </div>
             </div>
 
             <!-- Operational Mode Pills -->
@@ -162,8 +168,12 @@
 
               <div id="cvOptions" class="space-y-2 text-xs bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                 <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="adaptiveTuning" checked class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-0">
+                  <span class="text-emerald-400 font-semibold">🎯 Content-Adaptive Tuning (Auto-calibrate parameters)</span>
+                </label>
+                <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
                   <input type="checkbox" id="enableSharpening" checked class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-0">
-                  <span>Edge-Preserving Bilateral Sharpening (Detail Recovery)</span>
+                  <span>Fast Guided Filter Sharpening (O(N) Halo-Free)</span>
                 </label>
                 <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
                   <input type="checkbox" id="enableCLAHE" checked class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-0">
@@ -240,6 +250,15 @@
                     <i class="fa-solid fa-download"></i> <span>Download</span>
                   </a>
                 </div>
+              </div>
+
+              <!-- Optimized Prompt Banner -->
+              <div id="promptEnhanceNotice" class="hidden text-xs bg-indigo-950/60 border border-indigo-500/30 text-indigo-200 rounded-xl p-3 space-y-1">
+                <div class="flex items-center space-x-1.5 font-bold text-indigo-400">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                  <span>Intelligent Prompt Enhancement (Category: <span id="promptCatText">General</span>):</span>
+                </div>
+                <p id="promptEnhanceText" class="text-slate-300 font-mono text-[11px]"></p>
               </div>
 
               <!-- Single Image View Container -->
@@ -789,11 +808,15 @@
       const enableSharpening = document.getElementById('enableSharpening').checked;
       const enableCLAHE = document.getElementById('enableCLAHE').checked;
       const enableVibrance = document.getElementById('enableVibrance').checked;
+      const autoEnhance = document.getElementById('autoEnhancePrompt').checked;
+      const adaptiveTuning = document.getElementById('adaptiveTuning').checked;
       const seedVal = document.getElementById('seedInput').value;
 
       const payload = {
         prompt: prompt,
         mode: currentMode,
+        auto_enhance_prompt: autoEnhance,
+        adaptive_tuning: adaptiveTuning,
         seed: seedVal ? parseInt(seedVal) : null,
         apply_classical_cv: applyCV,
         enable_sharpening: enableSharpening,
@@ -834,6 +857,16 @@
         document.getElementById('metricClip').innerText = `${data.metrics.clip_score} / 1.0`;
         document.getElementById('metricRam').innerText = `${data.metrics.ram_used_mb} MB`;
         document.getElementById('metricModel').innerText = data.model_used;
+
+        // Display prompt optimization banner if modified
+        const notice = document.getElementById('promptEnhanceNotice');
+        if (data.prompt_enhancement && data.prompt_enhancement.enhanced) {
+          notice.classList.remove('hidden');
+          document.getElementById('promptCatText').innerText = data.prompt_enhancement.category.toUpperCase();
+          document.getElementById('promptEnhanceText').innerText = data.effective_prompt;
+        } else {
+          notice.classList.add('hidden');
+        }
 
         // Show results
         loading.classList.add('hidden');
@@ -919,3 +952,4 @@
   </script>
 </body>
 </html>
+
