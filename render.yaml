@@ -9,5 +9,9 @@ services:
     envVars:
       - key: DEVICE
         value: cpu
+      - key: RENDER
+        value: "true"
+      - key: LOW_MEMORY_MODE
+        value: "true"
       - key: PYTHON_VERSION
         value: 3.11.9

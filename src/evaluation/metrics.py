@@ -79,6 +79,12 @@ class Evaluator:
 
     def _load_clip(self):
         """Loads lightweight CLIP model for text-image semantic alignment scoring."""
+        if os.environ.get("RENDER") or os.environ.get("LOW_MEMORY_MODE", "").lower() in ["1", "true"]:
+            print("[Evaluator] Low-memory cloud container detected (Render 512MB RAM): using fast heuristic CLIP scoring.")
+            self.clip_model = None
+            self.clip_processor = None
+            return
+
         model_name = "openai/clip-vit-base-patch32"
         # Try local cache first
         try:

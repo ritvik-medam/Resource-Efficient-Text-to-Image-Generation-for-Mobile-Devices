@@ -112,9 +112,34 @@ class DiffusionEngine:
 
         try:
             # Memory safeguard for ultra-low memory containers (e.g. Render Free Tier with 512MB RAM)
-            total_ram_gb = psutil.virtual_memory().total / (1024 ** 3)
-            if self.device == "cpu" and total_ram_gb < 1.4:
-                print(f"[DiffusionEngine] Detected low-memory host ({total_ram_gb:.1f} GB RAM, e.g. Render Free Tier).")
+            def _get_effective_ram_gb() -> float:
+                # Check Linux cgroup v2
+                try:
+                    with open("/sys/fs/cgroup/memory.max", "r") as f:
+                        val = f.read().strip()
+                        if val != "max":
+                            return int(val) / (1024 ** 3)
+                except Exception:
+                    pass
+                # Check Linux cgroup v1
+                try:
+                    with open("/sys/fs/cgroup/memory/memory.limit_in_bytes", "r") as f:
+                        val = int(f.read().strip())
+                        if val < 1000000000000:
+                            return val / (1024 ** 3)
+                except Exception:
+                    pass
+                try:
+                    return psutil.virtual_memory().total / (1024 ** 3)
+                except Exception:
+                    return 4.0
+
+            is_render_free = bool(os.environ.get("RENDER")) and not bool(os.environ.get("RENDER_PAID"))
+            is_low_mem_env = os.environ.get("LOW_MEMORY_MODE", "").lower() in ["1", "true"]
+            effective_ram = _get_effective_ram_gb()
+
+            if is_render_free or is_low_mem_env or (self.device == "cpu" and effective_ram < 1.4):
+                print(f"[DiffusionEngine] Detected cloud container with restricted RAM ({effective_ram:.2f} GB limit).")
                 print("[DiffusionEngine] Activating Lightweight Edge Simulation & Full Classical CV Engine to prevent container OOM crash.")
                 self.is_real_model_loaded = False
                 return
