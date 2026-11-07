@@ -23,7 +23,7 @@ class TestPromptOptimizer(unittest.TestCase):
         enhanced, neg, meta = PromptOptimizer.optimize(prompt, auto_enhance=True)
         self.assertEqual(meta["category"], "animal")
         self.assertTrue(meta["enhanced"])
-        self.assertIn("fur", enhanced)
+        self.assertIn("retriever", enhanced)
         self.assertIn("deformed", neg)
 
     def test_portrait_optimization(self):

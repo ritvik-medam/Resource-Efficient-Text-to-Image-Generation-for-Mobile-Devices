@@ -7,7 +7,11 @@
 
 > **Problem Statement 3 (ProbID - P3):** Resource-Efficient Text-to-Image Generation for Mobile Devices  
 > **Team ID:** T01  
-> **USNs:** `1MS22CS001, 1MS22CS002, 1MS22CS003, 1MS22CS004` (See [`eval_P3_T01.md`](eval_P3_T01.md))
+> **USNs:** `1MS22CS001, 1MS22CS002, 1MS22CS003, 1MS22CS004` (See [`eval_P3_T01.md`](eval_P3_T01.md))  
+> 
+> 📄 **Official Submission Reports:**  
+> • [**RV University Capstone Project Report (33 Pages PDF)**](COLLEGE_PROJECT_REPORT.pdf)  
+> • [**Hackathon Technical Solution Report (4 Pages PDF)**](HACKATHON_TECHNICAL_REPORT.pdf)  
 
 ---
 

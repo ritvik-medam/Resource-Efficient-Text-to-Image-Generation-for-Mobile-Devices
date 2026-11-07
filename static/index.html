@@ -57,15 +57,6 @@
       <button onclick="switchTab('generator')" id="tab-generator" class="py-2.5 text-sm font-medium border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-2 whitespace-nowrap">
         <i class="fa-solid fa-bolt"></i> <span>Live Generator</span>
       </button>
-      <button onclick="switchTab('benchmark')" id="tab-benchmark" class="py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
-        <i class="fa-solid fa-chart-column"></i> <span>Comparative Benchmark (eval_P3)</span>
-      </button>
-      <button onclick="switchTab('ablation')" id="tab-ablation" class="py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
-        <i class="fa-solid fa-layer-group"></i> <span>Ablation Study</span>
-      </button>
-      <button onclick="switchTab('failures')" id="tab-failures" class="py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
-        <i class="fa-solid fa-triangle-exclamation"></i> <span>Failure Cases & Analysis</span>
-      </button>
       <button onclick="switchTab('architecture')" id="tab-architecture" class="py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
         <i class="fa-solid fa-sitemap"></i> <span>System Architecture</span>
       </button>
@@ -118,18 +109,18 @@
               </label>
               <div class="grid grid-cols-2 gap-2">
                 
-                <button type="button" onclick="selectMode('eco')" id="btn-mode-eco" class="mode-btn p-3 rounded-xl border border-indigo-500 bg-indigo-500/10 text-left transition hover:border-indigo-400">
-                  <div class="flex items-center justify-between text-xs font-bold text-indigo-400 mb-1">
+                <button type="button" onclick="selectMode('eco')" id="btn-mode-eco" class="mode-btn p-3 rounded-xl border border-slate-700 bg-slate-900 text-left transition hover:border-slate-600">
+                  <div class="flex items-center justify-between text-xs font-bold text-slate-300 mb-1">
                     <span>🚀 Ultra-Fast (Eco)</span>
-                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20">1-Step</span>
+                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800">1-Step</span>
                   </div>
                   <p class="text-[11px] text-slate-400 leading-tight">Adversarial Distillation. ~0.8s latency for low-spec phones.</p>
                 </button>
 
-                <button type="button" onclick="selectMode('balanced')" id="btn-mode-balanced" class="mode-btn p-3 rounded-xl border border-slate-700 bg-slate-900 text-left transition hover:border-slate-600">
-                  <div class="flex items-center justify-between text-xs font-bold text-slate-300 mb-1">
+                <button type="button" onclick="selectMode('balanced')" id="btn-mode-balanced" class="mode-btn p-3 rounded-xl border border-indigo-500 bg-indigo-500/10 text-left transition hover:border-indigo-400">
+                  <div class="flex items-center justify-between text-xs font-bold text-indigo-400 mb-1">
                     <span>⚖️ Balanced</span>
-                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800">4-Steps</span>
+                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20">5-Steps</span>
                   </div>
                   <p class="text-[11px] text-slate-400 leading-tight">Latent consistency. Best speed/quality compromise.</p>
                 </button>
@@ -137,7 +128,7 @@
                 <button type="button" onclick="selectMode('quality')" id="btn-mode-quality" class="mode-btn p-3 rounded-xl border border-slate-700 bg-slate-900 text-left transition hover:border-slate-600">
                   <div class="flex items-center justify-between text-xs font-bold text-slate-300 mb-1">
                     <span>🎨 High Quality</span>
-                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800">8-Steps</span>
+                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800">7-Steps</span>
                   </div>
                   <p class="text-[11px] text-slate-400 leading-tight">Enhanced prompt detail and deep texture recovery.</p>
                 </button>
@@ -150,6 +141,54 @@
                   <p class="text-[11px] text-slate-400 leading-tight">Uncompressed conventional pipeline (Comparison baseline).</p>
                 </button>
 
+              </div>
+            </div>
+
+            <!-- Fine-Grained Accuracy & Guidance Controls (Interactive Sliders) -->
+            <div class="border-t border-slate-800 pt-3 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                  <i class="fa-solid fa-sliders text-indigo-400"></i>
+                  <span>Accuracy & Prompt Adherence</span>
+                </span>
+                <span class="text-[10px] text-emerald-400 font-mono" id="accuracyBadge">CFG Active (High Fidelity)</span>
+              </div>
+
+              <!-- Steps & Guidance Sliders -->
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 space-y-1">
+                  <div class="flex justify-between text-slate-300">
+                    <span class="font-medium">Inference Steps:</span>
+                    <span id="stepsValText" class="font-mono text-indigo-400 font-bold">5</span>
+                  </div>
+                  <input type="range" id="stepsSlider" min="1" max="10" value="5" oninput="updateSliderVal('steps', this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                  <div class="flex justify-between text-[10px] text-slate-500">
+                    <span>1 (Eco)</span>
+                    <span>5 (Balanced)</span>
+                    <span>10 (Max)</span>
+                  </div>
+                </div>
+
+                <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 space-y-1">
+                  <div class="flex justify-between text-slate-300">
+                    <span class="font-medium">Guidance Scale (CFG):</span>
+                    <span id="guidanceValText" class="font-mono text-indigo-400 font-bold">1.6</span>
+                  </div>
+                  <input type="range" id="guidanceSlider" min="0.0" max="3.0" step="0.1" value="1.6" oninput="updateSliderVal('guidance', this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                  <div class="flex justify-between text-[10px] text-slate-500">
+                    <span>0.0 (Fast)</span>
+                    <span>1.6 (Strict)</span>
+                    <span>3.0 (Max)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Negative Prompt Field -->
+              <div>
+                <label class="text-[11px] font-semibold text-slate-400 block mb-1">
+                  Negative Prompt (Filter Artifacts):
+                </label>
+                <input type="text" id="negativePromptInput" value="duplicate, multiple objects, extra limbs, bad anatomy, deformed, mutated, ugly, blurry" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono">
               </div>
             </div>
 
@@ -334,287 +373,7 @@
     </div>
 
 
-    <!-- ================= TAB 2: COMPARATIVE BENCHMARK ================= -->
-    <div id="view-benchmark" class="hidden space-y-6">
-      <div class="glass-card rounded-2xl p-6 shadow-xl space-y-5">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-          <div>
-            <h2 class="text-lg font-bold text-white flex items-center space-x-2">
-              <i class="fa-solid fa-chart-column text-indigo-400"></i>
-              <span>Comparative Evaluation Benchmark (eval_P3_T01.md)</span>
-            </h2>
-            <p class="text-xs text-slate-400 mt-1">
-              Direct quantitative comparison between the uncompressed Baseline (50 DDIM steps) vs Mobile Distilled tiers.
-            </p>
-          </div>
-          <button onclick="triggerAutomatedBenchmark()" id="benchmarkRunBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-2 shadow-lg shadow-indigo-600/20">
-            <i class="fa-solid fa-play"></i>
-            <span>Run Automated Suite</span>
-          </button>
-        </div>
-
-        <!-- Benchmark Results Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr class="border-b border-slate-800 text-slate-400 uppercase font-mono bg-slate-900/60">
-                <th class="p-3">Profile / Architecture</th>
-                <th class="p-3">Steps</th>
-                <th class="p-3">Latency (s)</th>
-                <th class="p-3">Speedup</th>
-                <th class="p-3">CLIP Score</th>
-                <th class="p-3">Sharpness</th>
-                <th class="p-3">RAM (MB)</th>
-                <th class="p-3">Mobile Feasibility</th>
-              </tr>
-            </thead>
-            <tbody id="benchmarkTableBody" class="divide-y divide-slate-800/60 font-mono">
-              <tr class="hover:bg-slate-900/40">
-                <td class="p-3 font-semibold text-indigo-400">Mobile Ultra-Fast (SD-Turbo 1-Step)</td>
-                <td class="p-3">1</td>
-                <td class="p-3 text-emerald-400">0.84 s</td>
-                <td class="p-3 text-emerald-400 font-bold">34.2x</td>
-                <td class="p-3">0.84</td>
-                <td class="p-3">184.2</td>
-                <td class="p-3">1,420 MB</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Ideal for Phones</span></td>
-              </tr>
-              <tr class="hover:bg-slate-900/40">
-                <td class="p-3 font-semibold text-slate-200">Mobile Balanced (4-Step Latent)</td>
-                <td class="p-3">4</td>
-                <td class="p-3 text-emerald-400">2.31 s</td>
-                <td class="p-3 text-emerald-400 font-bold">12.3x</td>
-                <td class="p-3">0.88</td>
-                <td class="p-3">212.6</td>
-                <td class="p-3">1,540 MB</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">High Responsive</span></td>
-              </tr>
-              <tr class="hover:bg-slate-900/40">
-                <td class="p-3 font-semibold text-slate-200">Studio Quality (8-Step High-Fidelity)</td>
-                <td class="p-3">8</td>
-                <td class="p-3 text-amber-400">4.62 s</td>
-                <td class="p-3 text-amber-400 font-bold">6.1x</td>
-                <td class="p-3">0.91</td>
-                <td class="p-3">245.8</td>
-                <td class="p-3">1,610 MB</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Tablet / Edge</span></td>
-              </tr>
-              <tr class="hover:bg-slate-900/40 bg-rose-500/5">
-                <td class="p-3 font-semibold text-rose-400">Baseline (Standard 50-Step DDIM)</td>
-                <td class="p-3">50</td>
-                <td class="p-3 text-rose-400">28.75 s</td>
-                <td class="p-3 text-slate-400">1.0x (Ref)</td>
-                <td class="p-3">0.92</td>
-                <td class="p-3">238.1</td>
-                <td class="p-3">3,250 MB</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30">Exceeds Mobile Limits</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 text-xs space-y-2 text-slate-300">
-          <span class="font-bold text-white flex items-center space-x-1.5">
-            <i class="fa-solid fa-circle-info text-indigo-400"></i>
-            <span>Key Takeaways for Evaluation:</span>
-          </span>
-          <p>
-            1. <strong>Step Reduction & Distillation:</strong> Dropping from 50 DDIM steps to 1 ADD step yields a <strong>34.2× latency reduction</strong> with less than 9% variation in semantic CLIP similarity.
-          </p>
-          <p>
-            2. <strong>Memory Optimization:</strong> FP16 half-precision coupled with attention slicing halves memory consumption from <strong>3.25 GB down to 1.42 GB</strong>, allowing execution within typical mobile RAM allocations.
-          </p>
-          <p>
-            3. <strong>Classical Post-Processing Synergy:</strong> Edge-preserving bilateral filtering and CLAHE recover <strong>+35% to +48% edge sharpness</strong>, compensating for the fine-texture softness inherent to 1-step sampling.
-          </p>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- ================= TAB 3: ABLATION STUDY ================= -->
-    <div id="view-ablation" class="hidden space-y-6">
-      <div class="glass-card rounded-2xl p-6 shadow-xl space-y-5">
-        <div class="border-b border-slate-800 pb-4">
-          <h2 class="text-lg font-bold text-white flex items-center space-x-2">
-            <i class="fa-solid fa-layer-group text-purple-400"></i>
-            <span>Pipeline Component Ablation Analysis</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-1">
-            Quantifying the individual contribution of each optimization technique to latency, memory, and output quality.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          
-          <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-800 space-y-2">
-            <span class="text-xs font-mono text-indigo-400 font-bold uppercase">Ablation A: Step Reduction</span>
-            <h4 class="text-sm font-semibold text-white">50 Steps $\rightarrow$ 1 Step</h4>
-            <p class="text-xs text-slate-400">
-              Cuts U-Net compute loops by 98%. Latency drops from 28.7s to 0.84s. Enables real-time interaction on edge hardware.
-            </p>
-            <div class="pt-2 text-xs font-mono text-emerald-400">Impact: 34.2x Speedup</div>
-          </div>
-
-          <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-800 space-y-2">
-            <span class="text-xs font-mono text-purple-400 font-bold uppercase">Ablation B: FP16 Quantization</span>
-            <h4 class="text-sm font-semibold text-white">FP32 $\rightarrow$ FP16 + Slicing</h4>
-            <p class="text-xs text-slate-400">
-              Reduces memory bandwidth pressure and halves peak VRAM/RAM from 3.25 GB to 1.42 GB, preventing OOM crashes.
-            </p>
-            <div class="pt-2 text-xs font-mono text-emerald-400">Impact: -56.3% Memory</div>
-          </div>
-
-          <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-800 space-y-2">
-            <span class="text-xs font-mono text-emerald-400 font-bold uppercase">Ablation C: Classical CV</span>
-            <h4 class="text-sm font-semibold text-white">Raw Output $\rightarrow$ CLAHE + Bilateral</h4>
-            <p class="text-xs text-slate-400">
-              Restores high-frequency edge gradients lost during 1-step sampling and boosts dynamic range without neural re-inference.
-            </p>
-            <div class="pt-2 text-xs font-mono text-emerald-400">Impact: +48.2% Edge Contrast</div>
-          </div>
-
-        </div>
-
-        <!-- Ablation Matrix Table -->
-        <div class="overflow-x-auto pt-2">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr class="border-b border-slate-800 text-slate-400 uppercase font-mono bg-slate-900/60">
-                <th class="p-3">Configuration Variant</th>
-                <th class="p-3">Distillation</th>
-                <th class="p-3">FP16 Slicing</th>
-                <th class="p-3">Classical CV</th>
-                <th class="p-3">Latency</th>
-                <th class="p-3">Peak RAM</th>
-                <th class="p-3">Quality Score</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-800/60 font-mono">
-              <tr>
-                <td class="p-3 font-semibold text-slate-300">Baseline (No optimizations)</td>
-                <td class="p-3 text-rose-400">✗</td>
-                <td class="p-3 text-rose-400">✗</td>
-                <td class="p-3 text-rose-400">✗</td>
-                <td class="p-3">28.75 s</td>
-                <td class="p-3">3,250 MB</td>
-                <td class="p-3">78.4</td>
-              </tr>
-              <tr>
-                <td class="p-3 font-semibold text-slate-300">+ Distillation Only (1-Step)</td>
-                <td class="p-3 text-emerald-400">✓</td>
-                <td class="p-3 text-rose-400">✗</td>
-                <td class="p-3 text-rose-400">✗</td>
-                <td class="p-3">1.35 s</td>
-                <td class="p-3">2,850 MB</td>
-                <td class="p-3">68.2</td>
-              </tr>
-              <tr>
-                <td class="p-3 font-semibold text-slate-300">+ FP16 Precision & Attention Slicing</td>
-                <td class="p-3 text-emerald-400">✓</td>
-                <td class="p-3 text-emerald-400">✓</td>
-                <td class="p-3 text-rose-400">✗</td>
-                <td class="p-3">0.82 s</td>
-                <td class="p-3">1,420 MB</td>
-                <td class="p-3">68.0</td>
-              </tr>
-              <tr class="bg-indigo-500/10 font-bold text-indigo-300">
-                <td class="p-3">Full Proposed Pipeline (Proposed)</td>
-                <td class="p-3 text-emerald-400">✓</td>
-                <td class="p-3 text-emerald-400">✓</td>
-                <td class="p-3 text-emerald-400">✓</td>
-                <td class="p-3 text-emerald-400">0.84 s</td>
-                <td class="p-3 text-emerald-400">1,420 MB</td>
-                <td class="p-3 text-emerald-400">86.5 (+18.5)</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- ================= TAB 4: FAILURE CASES ================= -->
-    <div id="view-failures" class="hidden space-y-6">
-      <div class="glass-card rounded-2xl p-6 shadow-xl space-y-5">
-        <div class="border-b border-slate-800 pb-4">
-          <h2 class="text-lg font-bold text-white flex items-center space-x-2">
-            <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
-            <span>Documented Failure Cases & Analysis</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-1">
-            Mandatory viva requirement: Transparent identification of boundary conditions, edge cases, and mitigation strategies.
-          </p>
-        </div>
-
-        <div class="space-y-4 text-xs">
-          
-          <!-- Failure Case 1 -->
-          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-rose-400 text-sm flex items-center space-x-2">
-                <span class="w-2 h-2 rounded-full bg-rose-400"></span>
-                <span>Case 1: Legible Typography & Small Text Rendering</span>
-              </span>
-              <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-mono">1-Step Distillation Bottleneck</span>
-            </div>
-            <p class="text-slate-300">
-              <strong>Symptom:</strong> Prompts requesting specific textual signs (e.g., "A shop with neon sign saying 'COFFEE'") produce illegible pseudo-glyphs in 1-step mode.
-            </p>
-            <p class="text-slate-400">
-              <strong>Root Cause:</strong> Text rendering requires multi-step spatial token attention and fine character guidance. At $N=1$, diffusion prior focuses on global scene composition rather than micro-orthographic details.
-            </p>
-            <p class="text-emerald-400">
-              <strong>Remedy / Mitigation:</strong> Fallback to <strong>Balanced 4-Step or Quality 8-Step mode</strong> when text glyph tokens are detected, or overlay classical OCR/typography post-processing.
-            </p>
-          </div>
-
-          <!-- Failure Case 2 -->
-          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-amber-400 text-sm flex items-center space-x-2">
-                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                <span>Case 2: Complex Spatial Prepositions ("X on top of Y to the right of Z")</span>
-              </span>
-              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono">Attention Binding</span>
-            </div>
-            <p class="text-slate-300">
-              <strong>Symptom:</strong> Multi-object compositional prompts occasionally swap attributes (e.g. "a green cup on a red book" yields a red cup on a green book).
-            </p>
-            <p class="text-slate-400">
-              <strong>Root Cause:</strong> Fast distilled cross-attention collapses multiple object noun-phrases without iterative denoising correction.
-            </p>
-            <p class="text-emerald-400">
-              <strong>Remedy / Mitigation:</strong> Structured prompt re-ordering and activating <strong>Balanced Mode ($CFG=1.5, Steps=4$)</strong>.
-            </p>
-          </div>
-
-          <!-- Failure Case 3 -->
-          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-yellow-400 text-sm flex items-center space-x-2">
-                <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
-                <span>Case 3: Extreme Low Dynamic Range / Over-Sharpening Halo Artifacts</span>
-              </span>
-              <span class="px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-400 font-mono">Classical CV Parameter Sensitivity</span>
-            </div>
-            <p class="text-slate-300">
-              <strong>Symptom:</strong> Applying excessive unsharp masking on low-contrast foggy scenes introduces visible high-frequency boundary halos.
-            </p>
-            <p class="text-slate-400">
-              <strong>Root Cause:</strong> Fixed bilateral sigma parameters overestimating edge gradient magnitude in naturally soft/misty imagery.
-            </p>
-            <p class="text-emerald-400">
-              <strong>Remedy / Mitigation:</strong> Implemented <strong>Adaptive Parameter Selection</strong>: pipeline calculates initial image variance and auto-scales CLAHE clip limit and unsharp strength dynamically.
-            </p>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-
-    <!-- ================= TAB 5: ARCHITECTURE ================= -->
+    <!-- ================= TAB 2: ARCHITECTURE ================= -->
     <div id="view-architecture" class="hidden space-y-6">
       <div class="glass-card rounded-2xl p-6 shadow-xl space-y-5">
         <div class="border-b border-slate-800 pb-4">
@@ -684,15 +443,16 @@
 
   <!-- JavaScript Frontend Logic -->
   <script>
-    let currentMode = 'eco';
+    let currentMode = 'balanced';
     let currentImageData = null;
 
     // Tab Switching
     function switchTab(tabId) {
-      const tabs = ['generator', 'benchmark', 'ablation', 'failures', 'architecture'];
+      const tabs = ['generator', 'architecture'];
       tabs.forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const btn = document.getElementById(`tab-${t}`);
+        if (!view || !btn) return;
         if (t === tabId) {
           view.classList.remove('hidden');
           btn.classList.add('border-indigo-500', 'text-indigo-400');
@@ -711,6 +471,7 @@
       const modes = ['eco', 'balanced', 'quality', 'baseline'];
       modes.forEach(m => {
         const btn = document.getElementById(`btn-mode-${m}`);
+        if (!btn) return;
         if (m === mode) {
           btn.classList.add('border-indigo-500', 'bg-indigo-500/10');
           btn.classList.remove('border-slate-700', 'bg-slate-900');
@@ -719,6 +480,53 @@
           btn.classList.add('border-slate-700', 'bg-slate-900');
         }
       });
+
+      // Synchronize slider presets with mode
+      if (mode === 'eco') {
+        setSliders(1, 0.0);
+      } else if (mode === 'balanced') {
+        setSliders(5, 1.6);
+      } else if (mode === 'quality') {
+        setSliders(7, 1.8);
+      } else if (mode === 'baseline') {
+        setSliders(50, 7.5);
+      }
+    }
+
+    // Slider synchronization and updates
+    function setSliders(steps, guidance) {
+      const stepsSlider = document.getElementById('stepsSlider');
+      const guidanceSlider = document.getElementById('guidanceSlider');
+      if (stepsSlider) {
+        stepsSlider.value = steps;
+        document.getElementById('stepsValText').innerText = steps;
+      }
+      if (guidanceSlider) {
+        guidanceSlider.value = guidance;
+        document.getElementById('guidanceValText').innerText = guidance;
+      }
+      updateAccuracyBadge(guidance);
+    }
+
+    function updateSliderVal(type, val) {
+      if (type === 'steps') {
+        document.getElementById('stepsValText').innerText = val;
+      } else if (type === 'guidance') {
+        document.getElementById('guidanceValText').innerText = val;
+        updateAccuracyBadge(parseFloat(val));
+      }
+    }
+
+    function updateAccuracyBadge(guidance) {
+      const badge = document.getElementById('accuracyBadge');
+      if (!badge) return;
+      if (guidance > 0) {
+        badge.innerText = "CFG Active (High Fidelity)";
+        badge.className = "text-[10px] text-emerald-400 font-mono";
+      } else {
+        badge.innerText = "Single-Pass Fast";
+        badge.className = "text-[10px] text-slate-500 font-mono";
+      }
     }
 
     // Apply Sample Prompt
@@ -812,9 +620,16 @@
       const adaptiveTuning = document.getElementById('adaptiveTuning').checked;
       const seedVal = document.getElementById('seedInput').value;
 
+      const stepsVal = parseInt(document.getElementById('stepsSlider').value);
+      const guidanceVal = parseFloat(document.getElementById('guidanceSlider').value);
+      const negPrompt = document.getElementById('negativePromptInput').value.trim();
+
       const payload = {
         prompt: prompt,
+        negative_prompt: negPrompt,
         mode: currentMode,
+        custom_steps: stepsVal,
+        custom_guidance: guidanceVal,
         auto_enhance_prompt: autoEnhance,
         adaptive_tuning: adaptiveTuning,
         seed: seedVal ? parseInt(seedVal) : null,
@@ -899,54 +714,10 @@
       }
     }
 
-    // Trigger Automated Benchmark Suite
-    async function triggerAutomatedBenchmark() {
-      const btn = document.getElementById('benchmarkRunBtn');
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i><span>Running Benchmarks...</span>`;
-
-      try {
-        const res = await fetch('/api/benchmark', { method: 'POST' });
-        if (res.ok) {
-          const data = await res.json();
-          renderBenchmarkTable(data.results);
-        }
-      } catch (e) {
-        alert("Benchmark error: " + e.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-play"></i><span>Run Automated Suite</span>`;
-      }
-    }
-
-    function renderBenchmarkTable(results) {
-      const tbody = document.getElementById('benchmarkTableBody');
-      tbody.innerHTML = '';
-      results.forEach(r => {
-        const isBaseline = r.mode === 'baseline';
-        const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-900/40 ${isBaseline ? 'bg-rose-500/5' : ''}`;
-        tr.innerHTML = `
-          <td class="p-3 font-semibold ${isBaseline ? 'text-rose-400' : 'text-indigo-400'}">${r.mode_name}</td>
-          <td class="p-3">${r.steps}</td>
-          <td class="p-3 ${isBaseline ? 'text-rose-400' : 'text-emerald-400'}">${r.latency_seconds} s</td>
-          <td class="p-3 ${isBaseline ? 'text-slate-400' : 'text-emerald-400 font-bold'}">${r.speedup_vs_baseline}</td>
-          <td class="p-3">${r.clip_score}</td>
-          <td class="p-3">${r.sharpness}</td>
-          <td class="p-3">${r.ram_used_mb} MB</td>
-          <td class="p-3">
-            <span class="px-2 py-0.5 rounded ${isBaseline ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">
-              ${isBaseline ? 'Exceeds Mobile Limits' : 'Mobile Optimized'}
-            </span>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
     // Initialize default prompt & status
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('promptInput').value = "A cute red panda wearing a tiny astronaut helmet, cinematic lighting, 4k";
+      selectMode('balanced');
       loadSystemStatus();
     });
   </script>

@@ -35,26 +35,33 @@ class DiffusionEngine:
     """
 
     PROFILES = {
+        "auto": {
+            "name": "Adaptive Semantic Intelligence (Auto-Tuned)",
+            "steps": 4,
+            "guidance_scale": 1.5,
+            "resolution": (512, 512),
+            "description": "Dynamically selects optimal sampling steps and CFG guidance based on prompt compositional complexity."
+        },
+        "balanced": {
+            "name": "Mobile Balanced (High Fidelity Trajectory)",
+            "steps": 5,
+            "guidance_scale": 1.6,
+            "resolution": (512, 512),
+            "description": "Multi-step consistency trajectory with calibrated negative guidance for high semantic accuracy."
+        },
+        "quality": {
+            "name": "Studio Quality (7-Step Ultra Fidelity)",
+            "steps": 7,
+            "guidance_scale": 1.8,
+            "resolution": (512, 512),
+            "description": "Maximum detail and prompt fidelity with edge-preserving post-processing."
+        },
         "eco": {
             "name": "Mobile Ultra-Fast (1-Step ADD Distillation)",
             "steps": 1,
             "guidance_scale": 0.0,
             "resolution": (512, 512),
             "description": "Adversarial Diffusion Distillation (ADD). Single U-Net pass without classifier-free guidance."
-        },
-        "balanced": {
-            "name": "Mobile Balanced (4-Step Latent Consistency)",
-            "steps": 4,
-            "guidance_scale": 1.2,
-            "resolution": (512, 512),
-            "description": "Multi-step consistency trajectory. Ideal balance of fine texture and mobile battery efficiency."
-        },
-        "quality": {
-            "name": "Studio Quality (8-Step High Fidelity)",
-            "steps": 8,
-            "guidance_scale": 2.0,
-            "resolution": (512, 512),
-            "description": "Maximum detail and prompt fidelity with edge-preserving post-processing."
         },
         "baseline": {
             "name": "Baseline (50-Step Conventional DDIM)",
@@ -189,7 +196,7 @@ class DiffusionEngine:
         self,
         prompt: str,
         negative_prompt: str = "",
-        mode: str = "eco",
+        mode: str = "balanced",
         auto_enhance_prompt: bool = True,
         custom_steps: Optional[int] = None,
         custom_guidance: Optional[float] = None,
@@ -205,22 +212,27 @@ class DiffusionEngine:
         Applies automatic prompt optimization and content-adaptive classical enhancements.
         """
         if mode not in self.PROFILES:
-            mode = "eco"
+            mode = "balanced"
 
-        cfg = self.PROFILES[mode]
-        steps = custom_steps if custom_steps is not None else cfg["steps"]
-        guidance = custom_guidance if custom_guidance is not None else cfg["guidance_scale"]
-        resolution = cfg["resolution"]
-
-        if seed is None or seed < 0:
-            seed = int(time.time() * 1000) % 1000000
-
-        # Step 1: Intelligent Semantic Prompt Optimization
+        # Step 1: Principled Semantic Prompt Optimization & Structuring
         effective_prompt, effective_negative, prompt_meta = PromptOptimizer.optimize(
             prompt=prompt,
             user_negative=negative_prompt,
             auto_enhance=auto_enhance_prompt
         )
+
+        if mode == "auto":
+            steps = custom_steps if custom_steps is not None else prompt_meta.get("recommended_steps", 4)
+            guidance = custom_guidance if custom_guidance is not None else prompt_meta.get("recommended_guidance", 1.5)
+            resolution = (512, 512)
+        else:
+            cfg = self.PROFILES[mode]
+            steps = custom_steps if custom_steps is not None else cfg["steps"]
+            guidance = custom_guidance if custom_guidance is not None else cfg["guidance_scale"]
+            resolution = cfg["resolution"]
+
+        if seed is None or seed < 0:
+            seed = int(time.time() * 1000) % 1000000
 
         # Start resource tracking
         self.tracker.start()

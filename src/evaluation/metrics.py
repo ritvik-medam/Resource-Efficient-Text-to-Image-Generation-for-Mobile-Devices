@@ -79,6 +79,18 @@ class Evaluator:
 
     def _load_clip(self):
         """Loads lightweight CLIP model for text-image semantic alignment scoring."""
+        model_name = "openai/clip-vit-base-patch32"
+        # Try local cache first
+        try:
+            self.clip_processor = CLIPProcessor.from_pretrained(model_name, local_files_only=True)
+            self.clip_model = CLIPModel.from_pretrained(model_name, local_files_only=True)
+            self.clip_model.to(self.device)
+            self.clip_model.eval()
+            print(f"[Evaluator] Loaded local cached CLIP model '{model_name}' on {self.device}.")
+            return
+        except Exception:
+            pass
+
         if not self._is_online():
             # Fast offline fallback
             self.clip_model = None
@@ -86,7 +98,6 @@ class Evaluator:
             return
 
         try:
-            model_name = "openai/clip-vit-base-patch32"
             print(f"Loading CLIP model '{model_name}' on {self.device}...")
             self.clip_processor = CLIPProcessor.from_pretrained(model_name)
             self.clip_model = CLIPModel.from_pretrained(model_name)

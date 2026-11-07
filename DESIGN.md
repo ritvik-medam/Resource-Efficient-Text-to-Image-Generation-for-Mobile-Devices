@@ -1,11 +1,17 @@
 # System Design Document: Resource-Efficient Text-to-Image Generation (P3)
 
+**Department of Computer Science & Engineering | Computer Vision Hackathon & Capstone 2026**  
+**USNs:** `1MS22CS001, 1MS22CS002, 1MS22CS003, 1MS22CS004`  
 **Problem Statement:** P3 - Resource-Efficient Text-to-Image Generation for Mobile Devices  
 **Team ID:** T01  
+**Project Title:** EdgeDiffusion  
 
 ---
 
-## 1. Executive Summary & Problem Formulation
+## 1. Challenge Question & Problem Formulation
+
+### Challenge Question
+> *"How can you engineer a lightweight, high-quality text-to-image generation system that generates semantically accurate and visually realistic images from natural-language prompts while significantly reducing computational complexity, memory consumption and inference latency for resource-constrained mobile devices?"*
 
 Modern generative diffusion models (e.g., Stable Diffusion, SDXL) achieve remarkable visual fidelity but require 20–50 iterative denoising steps and 3–6 GB of peak VRAM. This renders them unfeasible for direct execution on resource-constrained mobile devices, where battery life, thermal throttling, inference latency (<3 seconds), and strict memory footprints (<2 GB) are critical.
 
@@ -91,18 +97,27 @@ Low-step diffusion outputs often exhibit subtle textural softness or compressed 
      $$L_{\text{enhanced}} = \text{CLAHE}(L^*, \text{clipLimit}=2.0, \text{grid}=(8,8))$$
    - Color channels ($a^*, b^*$) are preserved, preventing hue shifts and color cast artifacts.
 
-2. **Edge-Aware Bilateral Sharpening:**
-   - A bilateral filter computes a smoothed domain preserving strong structural edges:
-     $$I_{\text{smooth}}(x) = \frac{1}{W_p} \sum_{x_i \in \Omega} I(x_i) f_r(\|I(x_i) - I(x)\|) g_s(\|x_i - x\|)$$
+2. **Edge-Aware Guided & Bilateral Sharpening:**
+   - Supports both Bilateral filtering and $O(N)$ Fast Guided Filtering:
+     $$I_{\text{smooth}}(x) = \frac{1}{|\omega|} \sum_{i \in \omega} (a_k I(x) + b_k)$$
    - The edge high-frequency residual is extracted: $D = I - I_{\text{smooth}}$.
-   - Detail is added back with adaptive gain: $I_{\text{sharp}} = I + \beta D$. This sharpens object contours (+48.2% Laplacian variance) without amplifying sensor or diffusion grain.
+   - Detail is added back with adaptive gain: $I_{\text{sharp}} = I + \beta D$. This sharpens object contours (+35% to +66% Laplacian variance) without gradient reversal or halos around complex geometry.
 
 3. **Color Vibrance & Gamma Correction:**
    - Non-linear gamma adjustment and selective saturation scaling prevent washed-out midtones.
 
 ---
 
-## 5. Failure Case & Boundary Analysis
+## 5. Principled Semantic Attention Structurer & Active Guidance
+
+To guarantee high semantic fidelity across multi-attribute, multi-object prompts on edge devices:
+1. **Positional Attention Primacy:** The prompt optimizer preserves the user's core concepts at the start of the token sequence, maximizing CLIP ViT's positional attention weights where transformer self-attention is strongest.
+2. **Universal Negative Conditioning:** Automatically steers the latent trajectory away from geometric deformities, duplicate entities, and textural noise via a domain-invariant negative embedding vector.
+3. **Calibrated Classifier-Free Guidance (CFG):** Operating at CFG = 1.4–1.6 across 4 sampling steps provides sufficient vector steering to bind attributes (e.g., hats, accessories, background details) to the correct subjects while avoiding the high-CFG saturation blowups of distilled models.
+
+---
+
+## 6. Failure Case & Boundary Analysis
 
 1. **Micro-Typography:** Single-step distillation exhibits difficulty rendering small textual characters due to limited iterative spatial attention. Mitigated via 4-step balanced mode or text overlay.
 2. **Dense Multi-Object Composition:** Severe prepositional density (e.g. 5 interacting objects) can suffer from attribute binding errors. Mitigated by prompt token re-weighting.

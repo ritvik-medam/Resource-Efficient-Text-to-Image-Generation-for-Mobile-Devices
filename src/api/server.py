@@ -42,7 +42,7 @@ engine = DiffusionEngine()
 class GenerationRequest(BaseModel):
     prompt: str = Field(..., example="A cute red panda wearing a tiny astronaut helmet, cinematic lighting, 4k")
     negative_prompt: str = Field(default="")
-    mode: str = Field(default="eco", description="eco | balanced | quality | baseline")
+    mode: str = Field(default="balanced", description="balanced | auto | quality | eco | baseline")
     auto_enhance_prompt: bool = Field(default=True, description="Enrich prompt with photographic quality cues")
     custom_steps: Optional[int] = Field(default=None, ge=1, le=100)
     custom_guidance: Optional[float] = Field(default=None, ge=0.0, le=20.0)
