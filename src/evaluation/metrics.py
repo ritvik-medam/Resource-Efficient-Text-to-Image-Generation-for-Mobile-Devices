@@ -11,11 +11,9 @@ Measures:
 import os
 import time
 import psutil
-import torch
 import numpy as np
 from PIL import Image
 from typing import Dict, Any, Optional, List
-from transformers import CLIPProcessor, CLIPModel
 
 
 class SystemResourceTracker:
@@ -31,11 +29,16 @@ class SystemResourceTracker:
     def start(self):
         self.start_time = time.perf_counter()
         self.start_ram = self.process.memory_info().rss / (1024 * 1024)  # MB
-        if self.device == "cuda" and torch.cuda.is_available():
-            torch.cuda.reset_peak_memory_stats()
-            self.start_gpu_mem = torch.cuda.memory_allocated() / (1024 * 1024)
-        elif self.device == "mps" and hasattr(torch, "mps") and torch.backends.mps.is_available():
-            self.start_gpu_mem = torch.mps.current_allocated_memory() / (1024 * 1024)
+        if self.device in ["cuda", "mps"]:
+            try:
+                import torch
+                if self.device == "cuda" and torch.cuda.is_available():
+                    torch.cuda.reset_peak_memory_stats()
+                    self.start_gpu_mem = torch.cuda.memory_allocated() / (1024 * 1024)
+                elif self.device == "mps" and hasattr(torch, "mps") and torch.backends.mps.is_available():
+                    self.start_gpu_mem = torch.mps.current_allocated_memory() / (1024 * 1024)
+            except Exception:
+                self.start_gpu_mem = 0.0
         else:
             self.start_gpu_mem = 0.0
 
@@ -45,10 +48,15 @@ class SystemResourceTracker:
         ram_delta = max(0.0, current_ram - self.start_ram)
 
         gpu_mem = 0.0
-        if self.device == "cuda" and torch.cuda.is_available():
-            gpu_mem = torch.cuda.max_memory_allocated() / (1024 * 1024)
-        elif self.device == "mps" and hasattr(torch, "mps") and torch.backends.mps.is_available():
-            gpu_mem = torch.mps.current_allocated_memory() / (1024 * 1024)
+        if self.device in ["cuda", "mps"]:
+            try:
+                import torch
+                if self.device == "cuda" and torch.cuda.is_available():
+                    gpu_mem = torch.cuda.max_memory_allocated() / (1024 * 1024)
+                elif self.device == "mps" and hasattr(torch, "mps") and torch.backends.mps.is_available():
+                    gpu_mem = torch.mps.current_allocated_memory() / (1024 * 1024)
+            except Exception:
+                gpu_mem = 0.0
 
         return {
             "latency_seconds": round(elapsed, 3),
@@ -79,8 +87,16 @@ class Evaluator:
 
     def _load_clip(self):
         """Loads lightweight CLIP model for text-image semantic alignment scoring."""
-        if os.environ.get("RENDER") or os.environ.get("LOW_MEMORY_MODE", "").lower() in ["1", "true"]:
-            print("[Evaluator] Low-memory cloud container detected (Render 512MB RAM): using fast heuristic CLIP scoring.")
+        if os.environ.get("RENDER") or os.environ.get("LOW_MEMORY_MODE", "").lower() in ["1", "true"] or self.device == "cpu":
+            print("[Evaluator] Low-memory cloud container or CPU mode: using fast heuristic CLIP scoring.")
+            self.clip_model = None
+            self.clip_processor = None
+            return
+
+        try:
+            from transformers import CLIPProcessor, CLIPModel
+            import torch
+        except Exception:
             self.clip_model = None
             self.clip_processor = None
             return
@@ -127,6 +143,7 @@ class Evaluator:
             return round(heuristic, 3)
 
         try:
+            import torch
             inputs = self.clip_processor(
                 text=[text],
                 images=image,

@@ -14,7 +14,6 @@ import time
 import math
 import hashlib
 import psutil
-import torch
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from typing import Dict, Any, Tuple, Optional
@@ -91,12 +90,16 @@ class DiffusionEngine:
         if env_dev:
             return env_dev.lower().strip()
         if os.environ.get("RENDER"):
-            # Render cloud environment: default to CPU
+            # Render cloud environment: default to CPU immediately
             return "cpu"
-        if torch.cuda.is_available():
-            return "cuda"
-        elif hasattr(torch, "mps") and torch.backends.mps.is_available():
-            return "mps"
+        try:
+            import torch
+            if torch.cuda.is_available():
+                return "cuda"
+            elif hasattr(torch, "mps") and torch.backends.mps.is_available():
+                return "mps"
+        except Exception:
+            pass
         return "cpu"
 
     def _try_load_real_pipeline(self):
@@ -144,6 +147,7 @@ class DiffusionEngine:
                 self.is_real_model_loaded = False
                 return
 
+            import torch
             from diffusers import AutoPipelineForText2Image
 
             torch_dtype = torch.float16 if self.device in ["cuda", "mps"] else torch.float32
@@ -278,6 +282,7 @@ class DiffusionEngine:
 
         # Generate diffusion image
         if self.is_real_model_loaded and self.pipeline is not None:
+            import torch
             generator = torch.Generator(device=self.device).manual_seed(seed)
             try:
                 # Run real neural diffusion pass

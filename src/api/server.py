@@ -11,7 +11,6 @@ import io
 import base64
 import os
 import psutil
-import torch
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -65,8 +64,15 @@ def pil_to_base64(img) -> str:
 def get_system_status():
     """Returns hardware acceleration state, memory consumption, and active model."""
     device = engine.device
-    mps_available = hasattr(torch, "mps") and torch.backends.mps.is_available()
-    cuda_available = torch.cuda.is_available()
+    mps_available = False
+    cuda_available = False
+    if not (os.environ.get("RENDER") or os.environ.get("DEVICE") == "cpu"):
+        try:
+            import torch
+            mps_available = hasattr(torch, "mps") and torch.backends.mps.is_available()
+            cuda_available = torch.cuda.is_available()
+        except Exception:
+            pass
 
     mem = psutil.virtual_memory()
 
