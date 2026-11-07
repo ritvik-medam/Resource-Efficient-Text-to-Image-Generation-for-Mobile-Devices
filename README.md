@@ -1,5 +1,6 @@
 # EdgeDiffusion (P3): Resource-Efficient Text-to-Image Generation for Mobile Devices
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-46E3B7.svg?style=flat&logo=render)](https://resource-efficient-text-to-image.onrender.com/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.15-EE4C2C.svg?style=flat&logo=pytorch)](https://pytorch.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-5.0-5C3EE8.svg?style=flat&logo=opencv)](https://opencv.org/)
@@ -10,9 +11,10 @@
 > **Team Members:** Medam Ritvik (`1RUA24CSE0249`), Lochan M (`1RUA24CSE0225`), Manat M (`1RUA24CSE0237`), Pranav R (`1RUA24CSE0315`)  
 > **USNs (Line 1 of eval):** `1RUA24CSE0249, 1RUA24CSE0225, 1RUA24CSE0237, 1RUA24CSE0315` (See [`eval_P3_T01.md`](eval_P3_T01.md))  
 > 
+> 🌐 **Public Live Deployment:** [https://resource-efficient-text-to-image.onrender.com/](https://resource-efficient-text-to-image.onrender.com/)  
 > 📄 **Official Submission Reports:**  
 > • [**RV University Capstone Project Report (33 Pages PDF)**](COLLEGE_PROJECT_REPORT.pdf)  
-> • [**Hackathon Technical Solution Report (4 Pages PDF)**](HACKATHON_TECHNICAL_REPORT.pdf)  
+> • [**Hackathon Technical Solution Report (9 Pages PDF)**](HACKATHON_TECHNICAL_REPORT.pdf)  
 
 ---
 

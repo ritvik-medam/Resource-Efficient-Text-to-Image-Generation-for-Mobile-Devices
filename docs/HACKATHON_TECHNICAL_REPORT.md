@@ -15,7 +15,7 @@
 | **Team Name** | **EdgeDiffusion Team (Team ID: T01)** |
 | **Team Members & USNs** | **1. Medam Ritvik** (USN: `1RUA24CSE0249`) — *Team Lead & Systems Architect*<br>**2. Lochan M** (USN: `1RUA24CSE0225`) — *Classical CV Engine & Post-Processing*<br>**3. Manat M** (USN: `1RUA24CSE0237`) — *Diffusion Distillation & Latent Acceleration*<br>**4. Pranav R** (USN: `1RUA24CSE0315`) — *Mobile Profiling, Telemetry & Benchmarks* |
 | **GitHub Repository** | [`https://github.com/ritvik-medam/Resource-Efficient-Text-to-Image-Generation-for-Mobile-Devices.git`](https://github.com/ritvik-medam/Resource-Efficient-Text-to-Image-Generation-for-Mobile-Devices.git) (Commit: `59b543e`) |
-| **Live Demo / Deployment** | Single-Command FastAPI Local Inference Server + Interactive Telemetry Web Dashboard (Runs natively on Apple Silicon MPS / CPU / ONNX Mobile Runtime at `http://localhost:8080`) |
+| **Live Demo / Deployment** | [`https://resource-efficient-text-to-image.onrender.com/`](https://resource-efficient-text-to-image.onrender.com/) (Public Cloud Deployment on Render) &bull; Native On-Device Engine: Apple Silicon MPS at `http://localhost:8080` |
 
 ---
 

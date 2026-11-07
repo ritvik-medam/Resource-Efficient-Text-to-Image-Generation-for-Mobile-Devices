@@ -6,6 +6,7 @@
 **TeamID:** T01  
 **Team Members:** Medam Ritvik (`1RUA24CSE0249`), Lochan M (`1RUA24CSE0225`), Manat M (`1RUA24CSE0237`), Pranav R (`1RUA24CSE0315`)  
 **Institution:** School of Computer Science & Engineering, RV University, Bengaluru  
+**Live Public Deployment:** [https://resource-efficient-text-to-image.onrender.com/](https://resource-efficient-text-to-image.onrender.com/)  
 
 ---
 
